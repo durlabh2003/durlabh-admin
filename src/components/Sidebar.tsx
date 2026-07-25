@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { setAdminFlag } from '@/hooks/useAuth'
 import { UserCircle, Mail, LogOut } from 'lucide-react'
 
 interface SidebarProps {
@@ -15,6 +16,7 @@ export default function Sidebar({ user, unreadCount }: SidebarProps) {
   const isActive = (path: string) => location.pathname.includes(path)
 
   async function handleLogout() {
+    setAdminFlag(false)
     await supabase.auth.signOut()
     navigate('/login')
   }

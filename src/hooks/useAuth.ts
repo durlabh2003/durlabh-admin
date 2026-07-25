@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
+const ADMIN_KEY = 'pa_is_admin'
+
+export function setAdminFlag(value: boolean) {
+  if (value) {
+    localStorage.setItem(ADMIN_KEY, '1')
+  } else {
+    localStorage.removeItem(ADMIN_KEY)
+  }
+}
+
 interface AuthState {
   user: User | null
   isAdmin: boolean
@@ -10,47 +20,31 @@ interface AuthState {
 
 export function useAuth(): AuthState {
   const [user, setUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
+  // Read isAdmin immediately from localStorage — set by Login after a successful role check
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem(ADMIN_KEY) === '1')
   const [loading, setLoading] = useState(true)
 
-  async function checkAdminRole(userId: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .maybeSingle()
-
-    if (error) return false
-    return data !== null
-  }
-
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null
       setUser(currentUser)
-      if (currentUser) {
-        const admin = await checkAdminRole(currentUser.id)
-        setIsAdmin(admin)
+      // If there's no session, clear the admin flag
+      if (!currentUser) {
+        setIsAdmin(false)
+        setAdminFlag(false)
       }
       setLoading(false)
     })
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const currentUser = session?.user ?? null
-        setUser(currentUser)
-        if (currentUser) {
-          const admin = await checkAdminRole(currentUser.id)
-          setIsAdmin(admin)
-        } else {
-          setIsAdmin(false)
-        }
-        setLoading(false)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (!currentUser) {
+        setIsAdmin(false)
+        setAdminFlag(false)
       }
-    )
+      setLoading(false)
+    })
 
     return () => subscription.unsubscribe()
   }, [])

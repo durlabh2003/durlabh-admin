@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { setAdminFlag } from '@/hooks/useAuth'
 import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
@@ -54,7 +55,8 @@ export default function Login() {
       return
     }
 
-    // Step 4: All good — navigate to admin
+    // Step 4: All good — set flag and navigate to admin
+    setAdminFlag(true)
     navigate('/admin', { replace: true })
   }
 
