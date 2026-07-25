@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 
@@ -8,42 +9,53 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
+    // Step 1: Sign in
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     if (signInError) {
       setError(signInError.message)
       setLoading(false)
       return
     }
 
-    // Check admin role
+    // Step 2: Get the user
     const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle()
-
-      if (!roleData) {
-        await supabase.auth.signOut()
-        setError('Access denied. Admin role required.')
-        setLoading(false)
-        return
-      }
+    if (!user) {
+      setError('Could not retrieve user after sign in.')
+      setLoading(false)
+      return
     }
 
-    // Auth state change in useAuth will redirect automatically
+    // Step 3: Check admin role
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle()
+
+    if (roleError) {
+      setError('Error checking permissions: ' + roleError.message)
+      await supabase.auth.signOut()
+      setLoading(false)
+      return
+    }
+
+    if (!roleData) {
+      await supabase.auth.signOut()
+      setError('Access denied. This account does not have admin privileges.')
+      setLoading(false)
+      return
+    }
+
+    // Step 4: All good — navigate to admin
+    navigate('/admin', { replace: true })
   }
 
   return (
