@@ -5,11 +5,9 @@ import { Save, Check, Plus, Trash2, Linkedin, AlertCircle } from 'lucide-react'
 interface LinkedInPost {
   id: string
   title: string
-  contentSnippet: string
-  postUrl: string
-  likes: number
-  comments: number
-  date: string
+  embedCode: string
+  postUrl?: string
+  date?: string
 }
 
 export default function EditLinkedInPosts() {
@@ -58,12 +56,10 @@ export default function EditLinkedInPosts() {
   function addPost() {
     const newPost: LinkedInPost = {
       id: `post-${Date.now()}`,
-      title: 'LinkedIn Update',
-      contentSnippet: 'Excerpt of the LinkedIn post content...',
-      postUrl: 'https://linkedin.com/in/durlabhdaryani',
-      likes: 120,
-      comments: 15,
-      date: '2026'
+      title: 'LinkedIn Post',
+      embedCode: '<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:..." height="600" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>',
+      postUrl: '',
+      date: new Date().toISOString().split('T')[0]
     }
     const updated = [...posts, newPost]
     setPosts(updated)
@@ -101,9 +97,9 @@ export default function EditLinkedInPosts() {
         <div className="card-header-icon" style={{ width: 28, height: 28, borderRadius: 6 }}>
           <Linkedin size={14} />
         </div>
-        <span className="admin-header-title">LinkedIn Posts</span>
+        <span className="admin-header-title">LinkedIn Embed Posts</span>
         <span className="admin-header-divider">·</span>
-        <span className="admin-header-subtitle">Featured posts, engagement metrics & links</span>
+        <span className="admin-header-subtitle">Paste embedded iframe code from LinkedIn</span>
       </div>
 
       <div className="admin-body">
@@ -117,7 +113,7 @@ export default function EditLinkedInPosts() {
           {/* List Sidebar */}
           <div className="array-list-panel">
             <div className="array-list-header">
-              <span>Posts ({posts.length})</span>
+              <span>Embeds ({posts.length})</span>
               <button className="btn btn-ghost btn-sm" onClick={addPost} style={{ padding: '2px 6px' }}>
                 <Plus size={13} />
               </button>
@@ -130,7 +126,7 @@ export default function EditLinkedInPosts() {
                   onClick={() => setSelectedIndex(i)}
                 >
                   <div className="array-list-item-dot" />
-                  <div className="array-list-item-label">{post.title || 'Untitled Post'}</div>
+                  <div className="array-list-item-label">{post.title || 'Untitled Embed'}</div>
                 </button>
               ))}
             </div>
@@ -141,7 +137,7 @@ export default function EditLinkedInPosts() {
             {selectedPost ? (
               <div className="array-detail-body">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600 }}>{selectedPost.title || 'Edit Post'}</h3>
+                  <h3 style={{ fontSize: 16, fontWeight: 600 }}>{selectedPost.title || 'Edit Embed'}</h3>
                   <button className="btn btn-ghost btn-sm text-danger" onClick={() => removePost(selectedIndex)}>
                     <Trash2 size={13} /> Delete Post
                   </button>
@@ -149,56 +145,68 @@ export default function EditLinkedInPosts() {
 
                 <div className="form-grid-2">
                   <div className="form-group form-group-full">
-                    <label className="form-label">Post Headline / Topic</label>
+                    <label className="form-label">Post Title / Topic (for internal organization)</label>
                     <input
                       className="form-input"
                       value={selectedPost.title}
                       onChange={e => updateSelected('title', e.target.value)}
+                      placeholder="e.g., AI Agent Launch Post"
                     />
                   </div>
+
                   <div className="form-group">
-                    <label className="form-label">Post URL</label>
+                    <label className="form-label">Original LinkedIn Post URL (Optional)</label>
                     <input
                       className="form-input font-mono"
-                      value={selectedPost.postUrl}
+                      value={selectedPost.postUrl || ''}
                       onChange={e => updateSelected('postUrl', e.target.value)}
+                      placeholder="https://linkedin.com/posts/..."
                     />
                   </div>
+
                   <div className="form-group">
-                    <label className="form-label">Date</label>
+                    <label className="form-label">Date (Optional)</label>
                     <input
                       className="form-input"
-                      value={selectedPost.date}
+                      value={selectedPost.date || ''}
                       onChange={e => updateSelected('date', e.target.value)}
                     />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Likes</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      value={selectedPost.likes}
-                      onChange={e => updateSelected('likes', Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Comments</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      value={selectedPost.comments}
-                      onChange={e => updateSelected('comments', Number(e.target.value))}
-                    />
-                  </div>
+
                   <div className="form-group form-group-full">
-                    <label className="form-label">Content Snippet</label>
+                    <label className="form-label">LinkedIn Embed HTML Code (&lt;iframe ...&gt;)</label>
                     <textarea
-                      className="form-input form-textarea"
-                      rows={4}
-                      value={selectedPost.contentSnippet}
-                      onChange={e => updateSelected('contentSnippet', e.target.value)}
+                      className="form-input form-textarea font-mono"
+                      rows={5}
+                      value={selectedPost.embedCode || ''}
+                      onChange={e => updateSelected('embedCode', e.target.value)}
+                      placeholder='<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:..." ...></iframe>'
+                      style={{ fontSize: 12 }}
                     />
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                      Tip: On LinkedIn, click the 3 dots (...) on your post → "Embed this post" → copy the code and paste it here.
+                    </p>
                   </div>
+
+                  {/* Embed Preview */}
+                  {selectedPost.embedCode && (
+                    <div className="form-group form-group-full" style={{ marginTop: 12 }}>
+                      <label className="form-label">Live Embed Preview</label>
+                      <div
+                        style={{
+                          background: 'var(--bg-elevated)',
+                          padding: 16,
+                          borderRadius: 'var(--radius)',
+                          border: '1px solid var(--border)',
+                          overflow: 'auto',
+                          maxHeight: 500,
+                          display: 'flex',
+                          justify: 'center'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: selectedPost.embedCode }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -211,7 +219,7 @@ export default function EditLinkedInPosts() {
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}>
           {saved && (
             <span style={{ fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Check size={13} /> Saved LinkedIn Posts
+              <Check size={13} /> Saved LinkedIn Embeds
             </span>
           )}
           <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ minWidth: 120 }}>
