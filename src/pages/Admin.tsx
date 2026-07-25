@@ -1,15 +1,16 @@
 import { useState } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
 import Sidebar from '@/components/Sidebar'
 import EditProfile from '@/components/EditProfile'
 import ContactResponses from '@/components/ContactResponses'
 
-export default function Admin() {
-  const { user } = useAuth()
-  const [unreadCount, setUnreadCount] = useState(0)
+interface AdminProps {
+  user: User
+}
 
-  if (!user) return <Navigate to="/login" replace />
+export default function Admin({ user }: AdminProps) {
+  const [unreadCount, setUnreadCount] = useState(0)
 
   return (
     <div className="admin-layout">
