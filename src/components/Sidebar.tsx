@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { setAdminFlag } from '@/hooks/useAuth'
-import { UserCircle, Mail, LogOut } from 'lucide-react'
+import { UserCircle, Mail, LogOut, UserCheck, FolderKanban, Briefcase, Code2, BookOpen, Linkedin } from 'lucide-react'
 
 interface SidebarProps {
   user: User
@@ -26,9 +26,45 @@ export default function Sidebar({ user, unreadCount }: SidebarProps) {
   const navItems = [
     {
       id: 'profile',
-      label: 'Edit Profile',
+      label: 'Hero & Profile',
       icon: <UserCircle size={16} />,
       path: '/admin/profile',
+    },
+    {
+      id: 'about',
+      label: 'About Section',
+      icon: <UserCheck size={16} />,
+      path: '/admin/about',
+    },
+    {
+      id: 'projects',
+      label: 'Projects',
+      icon: <FolderKanban size={16} />,
+      path: '/admin/projects',
+    },
+    {
+      id: 'experience',
+      label: 'Experience',
+      icon: <Briefcase size={16} />,
+      path: '/admin/experience',
+    },
+    {
+      id: 'skills',
+      label: 'Skills & Tools',
+      icon: <Code2 size={16} />,
+      path: '/admin/skills',
+    },
+    {
+      id: 'articles',
+      label: 'Articles',
+      icon: <BookOpen size={16} />,
+      path: '/admin/articles',
+    },
+    {
+      id: 'linkedin',
+      label: 'LinkedIn Posts',
+      icon: <Linkedin size={16} />,
+      path: '/admin/linkedin',
     },
     {
       id: 'contacts',
