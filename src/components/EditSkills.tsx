@@ -26,7 +26,17 @@ export default function EditSkills() {
       if (error) {
         setFetchError(error.message)
       } else if (dbData?.data) {
-        setCategories(dbData.data as SkillCategory[])
+        const raw = dbData.data
+        if (Array.isArray(raw)) {
+          setCategories(raw as SkillCategory[])
+        } else if (typeof raw === 'object' && raw !== null) {
+          // Convert Object { "Product": ["Discovery", ...], "AI": [...] } -> SkillCategory[]
+          const converted: SkillCategory[] = Object.entries(raw).map(([category, skills]) => ({
+            category,
+            skills: Array.isArray(skills) ? skills : []
+          }))
+          setCategories(converted)
+        }
       }
       setLoading(false)
     }
@@ -36,9 +46,18 @@ export default function EditSkills() {
   async function handleSave() {
     setSaving(true)
     setSaved(false)
+
+    // Convert array back to dictionary object { "Product": [...], "AI": [...] } for portfolio compatibility
+    const objPayload: Record<string, string[]> = {}
+    categories.forEach(item => {
+      if (item.category.trim()) {
+        objPayload[item.category.trim()] = item.skills
+      }
+    })
+
     const { error } = await portfolioSupabase
       .from('portfolio_content')
-      .upsert({ section: 'skills', data: categories }, { onConflict: 'section' })
+      .upsert({ section: 'skills', data: objPayload }, { onConflict: 'section' })
 
     if (!error) {
       setSaved(true)
@@ -72,7 +91,7 @@ export default function EditSkills() {
   function addSkill(catIndex: number, skillName: string) {
     if (!skillName.trim()) return
     const updated = [...categories]
-    updated[catIndex].skills.push(skillName.trim())
+    updated[catIndex].skills = [...updated[catIndex].skills, skillName.trim()]
     setCategories(updated)
   }
 
@@ -129,7 +148,7 @@ export default function EditSkills() {
                   </div>
 
                   <div className="skills-tags">
-                    {cat.skills.map((skill, sIdx) => (
+                    {(cat.skills || []).map((skill, sIdx) => (
                       <span key={sIdx} className="skill-tag">
                         {skill}
                         <button onClick={() => removeSkill(catIdx, sIdx)}><Trash2 size={11} /></button>
