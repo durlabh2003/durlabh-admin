@@ -3,16 +3,22 @@ import { portfolioSupabase } from '@/lib/supabase'
 import { Save, Check, Plus, Trash2, FolderKanban, AlertCircle } from 'lucide-react'
 
 interface Project {
-  id: string
-  title: string
-  subtitle: string
-  category: string
+  id?: string
+  index?: string
+  name: string
+  title?: string
+  subtitle?: string
+  kicker?: string
+  category?: string
   description: string
+  longDescription?: string
   role: string
-  timeline: string
-  outcomes: string[]
-  tags: string[]
+  timeline?: string
+  status?: string
+  stack?: string[]
+  tags?: string[]
   liveUrl?: string
+  prdUrl?: string
 }
 
 export default function EditProjects() {
@@ -29,13 +35,21 @@ export default function EditProjects() {
       const { data: dbData, error } = await portfolioSupabase
         .from('portfolio_content')
         .select('data')
-        .eq('section', 'projects')
+        .eq('section', 'featuredProducts')
         .maybeSingle()
 
       if (error) {
         setFetchError(error.message)
       } else if (dbData?.data) {
-        setProjects(dbData.data as Project[])
+        const rawList = dbData.data as any[]
+        const normalized = rawList.map(item => ({
+          ...item,
+          name: item.name || item.title || 'Untitled',
+          title: item.title || item.name || 'Untitled',
+          tags: item.tags || item.stack || [],
+          stack: item.stack || item.tags || []
+        }))
+        setProjects(normalized)
       }
       setLoading(false)
     }
@@ -45,15 +59,29 @@ export default function EditProjects() {
   async function handleSave() {
     setSaving(true)
     setSaved(false)
-    const { error } = await portfolioSupabase
-      .from('portfolio_content')
-      .upsert({ section: 'projects', data: projects }, { onConflict: 'section' })
+    
+    // Save to both 'featuredProducts' and 'projects' keys to ensure compatibility with site
+    const payload = projects.map(p => ({
+      ...p,
+      name: p.name || p.title || '',
+      title: p.title || p.name || '',
+      stack: p.stack || p.tags || [],
+      tags: p.tags || p.stack || []
+    }))
 
-    if (!error) {
+    const { error: err1 } = await portfolioSupabase
+      .from('portfolio_content')
+      .upsert({ section: 'featuredProducts', data: payload }, { onConflict: 'section' })
+
+    const { error: err2 } = await portfolioSupabase
+      .from('portfolio_content')
+      .upsert({ section: 'projects', data: payload }, { onConflict: 'section' })
+
+    if (!err1 && !err2) {
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } else {
-      alert(`Save error: ${error.message}`)
+      alert(`Save error: ${err1?.message || err2?.message}`)
     }
     setSaving(false)
   }
@@ -61,14 +89,21 @@ export default function EditProjects() {
   function addProject() {
     const newProj: Project = {
       id: `proj-${Date.now()}`,
-      title: 'New Project',
+      index: `0${projects.length + 1}`,
+      name: 'New Product',
+      title: 'New Product',
       subtitle: 'Short Pitch',
+      kicker: 'SAAS',
       category: 'AI / SaaS',
-      description: 'Detailed description of the product and problem statement.',
+      description: 'Conversational AI product assistant...',
+      longDescription: 'Detailed problem framing and solution details...',
       role: 'Lead PM',
       timeline: '2026',
-      outcomes: ['Impact metric 1'],
-      tags: ['React', 'Supabase']
+      status: 'shipped',
+      stack: ['React', 'Supabase'],
+      tags: ['React', 'Supabase'],
+      liveUrl: 'https://example.com',
+      prdUrl: 'https://example.com/prd'
     }
     const updated = [...projects, newProj]
     setProjects(updated)
@@ -86,7 +121,12 @@ export default function EditProjects() {
   function updateSelected(field: keyof Project, val: any) {
     if (projects.length === 0) return
     const updated = [...projects]
-    updated[selectedIndex] = { ...updated[selectedIndex], [field]: val }
+    const current = { ...updated[selectedIndex], [field]: val }
+    if (field === 'name') current.title = val
+    if (field === 'title') current.name = val
+    if (field === 'stack') current.tags = val
+    if (field === 'tags') current.stack = val
+    updated[selectedIndex] = current
     setProjects(updated)
   }
 
@@ -106,7 +146,7 @@ export default function EditProjects() {
         <div className="card-header-icon" style={{ width: 28, height: 28, borderRadius: 6 }}>
           <FolderKanban size={14} />
         </div>
-        <span className="admin-header-title">Projects</span>
+        <span className="admin-header-title">Featured Products</span>
         <span className="admin-header-divider">·</span>
         <span className="admin-header-subtitle">Manage portfolio case studies & products</span>
       </div>
@@ -122,7 +162,7 @@ export default function EditProjects() {
           {/* List Sidebar */}
           <div className="array-list-panel">
             <div className="array-list-header">
-              <span>Projects ({projects.length})</span>
+              <span>Products ({projects.length})</span>
               <button className="btn btn-ghost btn-sm" onClick={addProject} style={{ padding: '2px 6px' }}>
                 <Plus size={13} />
               </button>
@@ -130,12 +170,12 @@ export default function EditProjects() {
             <div className="array-list-items">
               {projects.map((proj, i) => (
                 <button
-                  key={proj.id || i}
+                  key={proj.id || proj.name || i}
                   className={`array-list-item ${selectedIndex === i ? 'active' : ''}`}
                   onClick={() => setSelectedIndex(i)}
                 >
                   <div className="array-list-item-dot" />
-                  <div className="array-list-item-label">{proj.title || 'Untitled Project'}</div>
+                  <div className="array-list-item-label">{proj.name || proj.title || 'Untitled Product'}</div>
                 </button>
               ))}
             </div>
@@ -146,55 +186,52 @@ export default function EditProjects() {
             {selectedProj ? (
               <div className="array-detail-body">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600 }}>{selectedProj.title || 'Edit Project'}</h3>
+                  <h3 style={{ fontSize: 16, fontWeight: 600 }}>{selectedProj.name || 'Edit Product'}</h3>
                   <button className="btn btn-ghost btn-sm text-danger" onClick={() => removeProject(selectedIndex)}>
-                    <Trash2 size={13} /> Delete Project
+                    <Trash2 size={13} /> Delete Product
                   </button>
                 </div>
 
                 <div className="form-grid-2">
                   <div className="form-group">
-                    <label className="form-label">Project Title</label>
+                    <label className="form-label">Product Name</label>
                     <input
                       className="form-input"
-                      value={selectedProj.title}
-                      onChange={e => updateSelected('title', e.target.value)}
+                      value={selectedProj.name || selectedProj.title || ''}
+                      onChange={e => updateSelected('name', e.target.value)}
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Subtitle / Hook</label>
+                    <label className="form-label">Kicker / Category Tag</label>
                     <input
-                      className="form-input"
-                      value={selectedProj.subtitle}
-                      onChange={e => updateSelected('subtitle', e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Category</label>
-                    <input
-                      className="form-input"
-                      value={selectedProj.category}
-                      onChange={e => updateSelected('category', e.target.value)}
+                      className="form-input font-mono"
+                      value={selectedProj.kicker || selectedProj.category || ''}
+                      onChange={e => updateSelected('kicker', e.target.value)}
+                      placeholder="e.g. AI SHOPPING"
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Role</label>
                     <input
                       className="form-input"
-                      value={selectedProj.role}
+                      value={selectedProj.role || ''}
                       onChange={e => updateSelected('role', e.target.value)}
+                      placeholder="e.g. PM · UX · AI Workflow"
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Timeline</label>
-                    <input
+                    <label className="form-label">Status</label>
+                    <select
                       className="form-input"
-                      value={selectedProj.timeline}
-                      onChange={e => updateSelected('timeline', e.target.value)}
-                    />
+                      value={selectedProj.status || 'shipped'}
+                      onChange={e => updateSelected('status', e.target.value)}
+                    >
+                      <option value="shipped">Shipped</option>
+                      <option value="concept">Concept</option>
+                    </select>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Live Link / URL</label>
+                    <label className="form-label">Live Product URL</label>
                     <input
                       className="form-input font-mono"
                       value={selectedProj.liveUrl || ''}
@@ -202,27 +239,45 @@ export default function EditProjects() {
                       placeholder="https://..."
                     />
                   </div>
+                  <div className="form-group">
+                    <label className="form-label">PRD Document URL</label>
+                    <input
+                      className="form-input font-mono"
+                      value={selectedProj.prdUrl || ''}
+                      onChange={e => updateSelected('prdUrl', e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </div>
                   <div className="form-group form-group-full">
-                    <label className="form-label">Description</label>
+                    <label className="form-label">Short Card Description</label>
                     <textarea
                       className="form-input form-textarea"
-                      rows={4}
-                      value={selectedProj.description}
+                      rows={2}
+                      value={selectedProj.description || ''}
                       onChange={e => updateSelected('description', e.target.value)}
                     />
                   </div>
                   <div className="form-group form-group-full">
-                    <label className="form-label">Tags (comma separated)</label>
+                    <label className="form-label">Detailed Modal Description</label>
+                    <textarea
+                      className="form-input form-textarea"
+                      rows={3}
+                      value={selectedProj.longDescription || ''}
+                      onChange={e => updateSelected('longDescription', e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group form-group-full">
+                    <label className="form-label">Tech Stack (comma separated)</label>
                     <input
                       className="form-input font-mono"
-                      value={(selectedProj.tags || []).join(', ')}
-                      onChange={e => updateSelected('tags', e.target.value.split(',').map(t => t.trim()))}
+                      value={(selectedProj.stack || selectedProj.tags || []).join(', ')}
+                      onChange={e => updateSelected('stack', e.target.value.split(',').map(t => t.trim()))}
                     />
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="array-detail-placeholder">No project selected. Add or pick one from the list.</div>
+              <div className="array-detail-placeholder">No product selected. Add or pick one from the list.</div>
             )}
           </div>
         </div>
@@ -231,11 +286,11 @@ export default function EditProjects() {
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}>
           {saved && (
             <span style={{ fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Check size={13} /> Saved Projects
+              <Check size={13} /> Saved Products
             </span>
           )}
           <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ minWidth: 120 }}>
-            {saving ? 'Saving...' : <><Save size={14} /> Save Projects</>}
+            {saving ? 'Saving...' : <><Save size={14} /> Save Products</>}
           </button>
         </div>
       </div>
