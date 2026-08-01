@@ -5,6 +5,7 @@ import Sidebar from '@/components/Sidebar'
 import EditProfile from '@/components/EditProfile'
 import EditAbout from '@/components/EditAbout'
 import EditProjects from '@/components/EditProjects'
+import EditCaseStudies from '@/components/EditCaseStudies'
 import EditExperience from '@/components/EditExperience'
 import EditSkills from '@/components/EditSkills'
 import EditArticles from '@/components/EditArticles'
@@ -27,6 +28,7 @@ export default function Admin({ user }: AdminProps) {
           <Route path="profile" element={<EditProfile />} />
           <Route path="about" element={<EditAbout />} />
           <Route path="projects" element={<EditProjects />} />
+          <Route path="case-studies" element={<EditCaseStudies />} />
           <Route path="experience" element={<EditExperience />} />
           <Route path="skills" element={<EditSkills />} />
           <Route path="articles" element={<EditArticles />} />

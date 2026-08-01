@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { setAdminFlag } from '@/hooks/useAuth'
-import { UserCircle, Mail, LogOut, UserCheck, FolderKanban, Briefcase, Code2, BookOpen, Linkedin } from 'lucide-react'
+import { UserCircle, Mail, LogOut, UserCheck, FolderKanban, Briefcase, Code2, BookOpen, Linkedin, FileText } from 'lucide-react'
 
 interface SidebarProps {
   user: User
@@ -41,6 +41,12 @@ export default function Sidebar({ user, unreadCount }: SidebarProps) {
       label: 'Projects',
       icon: <FolderKanban size={16} />,
       path: '/admin/projects',
+    },
+    {
+      id: 'case-studies',
+      label: 'Case Studies',
+      icon: <FileText size={16} />,
+      path: '/admin/case-studies',
     },
     {
       id: 'experience',
