@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { portfolioSupabase } from '@/lib/supabase'
-import { Save, Check, Plus, Trash2, FileText, AlertCircle, ExternalLink } from 'lucide-react'
+import { Save, Check, Plus, Trash2, FileText, AlertCircle } from 'lucide-react'
 
 interface CaseStudy {
   slug: string

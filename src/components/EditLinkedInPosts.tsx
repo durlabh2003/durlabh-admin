@@ -201,7 +201,7 @@ export default function EditLinkedInPosts() {
                           overflow: 'auto',
                           maxHeight: 500,
                           display: 'flex',
-                          justify: 'center'
+                          justifyContent: 'center'
                         }}
                         dangerouslySetInnerHTML={{ __html: selectedPost.embedCode }}
                       />

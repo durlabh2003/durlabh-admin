@@ -49,11 +49,18 @@ export function SaveBar({ saving, saved, onSave, disabled }: SaveBarProps) {
           <Check size={13} /> Saved
         </span>
       )}
-      <button className="btn btn-primary" onClick={onSave} disabled={saving} style={{ minWidth: 120 }}>
-        {saving
-          ? <><div className="loading-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />Saving…</>
-          : <><Save size={14} />Save</>
-        }
+      <button className="btn btn-primary" onClick={onSave} disabled={saving || disabled} style={{ minWidth: 120 }}>
+        {saving ? (
+          <>
+            <div className="loading-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+            Saving…
+          </>
+        ) : (
+          <>
+            <Save size={14} />
+            Save
+          </>
+        )}
       </button>
     </div>
   )
