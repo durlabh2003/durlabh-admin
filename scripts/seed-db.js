@@ -98,6 +98,7 @@ const caseStudies = [
     name: "Kartify",
     tag: "AI Shopping Assistant",
     status: "shipped",
+    notionEmbed: '<iframe src="https://well-yellowhorn-923.notion.site/ebd//3af31ee2baa080218671dbe18a487007" width="100%" height="600" frameborder="0" allowfullscreen />',
     problem: "Shoppers waste hours comparing products across marketplaces with inconsistent specs, reviews and pricing.",
     research: "12 user interviews across three shopping personas; competitive teardown of Amazon, Perplexity Shopping and Google Shopping.",
     jtbd: "When I'm buying a considered product, I want a trusted advisor that asks the right questions, so I can decide confidently without opening 20 tabs.",

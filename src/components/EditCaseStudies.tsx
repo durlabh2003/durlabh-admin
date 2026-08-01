@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { portfolioSupabase } from '@/lib/supabase'
-import { Save, Check, Plus, Trash2, FileText, AlertCircle } from 'lucide-react'
+import { Save, Check, Plus, Trash2, FileText, AlertCircle, ExternalLink } from 'lucide-react'
 
 interface CaseStudy {
   slug: string
   name: string
   tag: string
   status: 'shipped' | 'concept'
-  problem: string
-  research: string
-  jtbd: string
-  prd: string
-  metrics: string[]
-  lessons: string
+  notionEmbed?: string
+  problem?: string
+  research?: string
+  jtbd?: string
+  prd?: string
+  metrics?: string[]
+  lessons?: string
 }
 
 export default function EditCaseStudies() {
@@ -64,12 +65,13 @@ export default function EditCaseStudies() {
       name: 'New Case Study',
       tag: 'AI / Product Strategy',
       status: 'shipped',
-      problem: 'Describe the core problem statement and market gap...',
-      research: 'Summary of user research, interviews and competitive teardowns...',
+      notionEmbed: '<iframe src="https://well-yellowhorn-923.notion.site/ebd//3af31ee2baa080218671dbe18a487007" width="100%" height="600" frameborder="0" allowfullscreen />',
+      problem: 'Describe the core problem statement...',
+      research: 'Summary of user research...',
       jtbd: 'When [situation], I want to [motivation], so I can [outcome].',
-      prd: 'Key specs, features and architecture decisions...',
-      metrics: ['Metric 1: High completion rate', 'Metric 2: Fast processing time'],
-      lessons: 'Key takeaways, framework applications, and product learnings...'
+      prd: 'Key specs and features...',
+      metrics: ['Metric 1: High adoption'],
+      lessons: 'Key takeaways...'
     }
     const updated = [...studies, newStudy]
     setStudies(updated)
@@ -126,9 +128,9 @@ export default function EditCaseStudies() {
         <div className="card-header-icon" style={{ width: 28, height: 28, borderRadius: 6 }}>
           <FileText size={14} />
         </div>
-        <span className="admin-header-title">Case Studies</span>
+        <span className="admin-header-title">Case Studies & Notion Embeds</span>
         <span className="admin-header-divider">·</span>
-        <span className="admin-header-subtitle">Manage deep-dive PM case studies, JTBD & metrics</span>
+        <span className="admin-header-subtitle">Manage deep-dive case studies and embedded Notion documents</span>
       </div>
 
       <div className="admin-body">
@@ -174,7 +176,7 @@ export default function EditCaseStudies() {
 
                 <div className="form-grid-2">
                   <div className="form-group">
-                    <label className="form-label">Case Study Name</label>
+                    <label className="form-label">Case Study Title</label>
                     <input
                       className="form-input"
                       value={selectedStudy.name || ''}
@@ -214,8 +216,44 @@ export default function EditCaseStudies() {
                     </select>
                   </div>
 
+                  {/* Notion Embed Code */}
                   <div className="form-group form-group-full">
-                    <label className="form-label">Problem Statement</label>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>Notion Embed HTML (&lt;iframe src="https://...notion.site/..." ... /&gt;)</span>
+                    </label>
+                    <textarea
+                      className="form-input form-textarea font-mono"
+                      rows={3}
+                      value={selectedStudy.notionEmbed || ''}
+                      onChange={e => updateSelected('notionEmbed', e.target.value)}
+                      placeholder='<iframe src="https://well-yellowhorn-923.notion.site/ebd//..." width="100%" height="600" frameborder="0" allowfullscreen />'
+                      style={{ fontSize: 12 }}
+                    />
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                      Paste your Notion embed code here. When present, the live interactive Notion document will render directly inside the portfolio case study!
+                    </p>
+                  </div>
+
+                  {/* Notion Live Preview */}
+                  {selectedStudy.notionEmbed && (
+                    <div className="form-group form-group-full" style={{ marginTop: 8 }}>
+                      <label className="form-label">Live Notion Document Preview</label>
+                      <div
+                        style={{
+                          background: 'var(--bg-elevated)',
+                          padding: 12,
+                          borderRadius: 'var(--radius)',
+                          border: '1px solid var(--border)',
+                          overflow: 'hidden',
+                          height: 520
+                        }}
+                        dangerouslySetInnerHTML={{ __html: selectedStudy.notionEmbed }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="form-group form-group-full">
+                    <label className="form-label">Problem Statement (Fallback text)</label>
                     <textarea
                       className="form-input form-textarea"
                       rows={3}
@@ -284,7 +322,7 @@ export default function EditCaseStudies() {
                     <label className="form-label">Key Lessons & Framework Applications</label>
                     <textarea
                       className="form-input form-textarea"
-                      rows={4}
+                      rows={3}
                       value={selectedStudy.lessons || ''}
                       onChange={e => updateSelected('lessons', e.target.value)}
                     />
