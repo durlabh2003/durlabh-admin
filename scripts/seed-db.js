@@ -222,16 +222,9 @@ const skills = {
 const linkedinPosts = [
   {
     id: "post-1",
-    date: "2026-07-15",
-    title: "AI PM Evaluation Loops",
-    embedCode: '<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7200000000000000000" height="500" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>',
-    postUrl: "https://www.linkedin.com/in/durlabhdaryani",
-  },
-  {
-    id: "post-2",
-    date: "2026-07-02",
-    title: "Customer Discovery Without a Research Team",
-    embedCode: '<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7200000000000000001" height="500" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>',
+    date: "2026-08-01",
+    title: "AI Product & Agent Showcase",
+    embedCode: '<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7487405005470175232?collapsed=1" height="634" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>',
     postUrl: "https://www.linkedin.com/in/durlabhdaryani",
   }
 ];
